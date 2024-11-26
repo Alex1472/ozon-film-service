@@ -56,6 +56,7 @@ func (s *GrpcServer) Start(cfg *config.Config) error {
 	gatewayServer := createGatewayServer(grpcAddr, gatewayAddr)
 
 	fmt.Println("test")
+	fmt.Println("test")
 	go func() {
 		log.Info().Msgf("Gateway server is running on %s", gatewayAddr)
 		if err := gatewayServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
