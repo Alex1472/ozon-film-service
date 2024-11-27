@@ -1,6 +1,6 @@
 # Builder
 
-ARG GITHUB_PATH=github.com/ozonmp/omp-template-api
+ARG GITHUB_PATH=github.com/Alex1472/ozon-film-service
 
 FROM golang:1.16-alpine AS builder
 

@@ -5,8 +5,8 @@ endif
 
 export GO111MODULE=on
 
-SERVICE_NAME=omp-template-api
-SERVICE_PATH=ozonmp/omp-template-api
+SERVICE_NAME=film-service
+SERVICE_PATH=Alex1472/ozon-film-service
 
 PGV_VERSION:="v0.6.1"
 BUF_VERSION:="v1.16.0"
@@ -38,7 +38,7 @@ test:
 # ----------------------------------------------------------------
 
 .PHONY: generate
-generate: .generate-install-buf .generate-go .generate-python .generate-finalize-go .generate-finalize-python
+generate: .generate-install-buf .generate-go .generate-finalize-go
 
 .PHONY: generate
 generate-go: .generate-install-buf .generate-go .generate-finalize-go
@@ -51,8 +51,6 @@ generate-go: .generate-install-buf .generate-go .generate-finalize-go
 .generate-go:
 	$(BUF_EXE) generate
 
-.generate-python:
-	$(BUF_EXE) generate --template buf.gen.python.yaml
 
 .generate-finalize-go:
 	mv pkg/$(SERVICE_NAME)/github.com/$(SERVICE_PATH)/pkg/$(SERVICE_NAME)/* pkg/$(SERVICE_NAME)

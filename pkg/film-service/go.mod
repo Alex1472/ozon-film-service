@@ -1,6 +1,6 @@
-module github.com/ozonmp/omp-template-api/pkg/omp-template-api
+module github.com/Alex1472/ozon-film-service/pkg/film-service
 
-go 1.17
+go 1.21
 
 require (
 	github.com/envoyproxy/protoc-gen-validate v0.6.2

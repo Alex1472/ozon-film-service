@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ozonmp/omp-template-api/internal/config"
+	"github.com/Alex1472/ozon-film-service/internal/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 

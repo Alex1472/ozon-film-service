@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package alex1472.ozon_film_service.film_service.v1;
+
+import "validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/Alex1472/ozon-film-service/pkg/film-service;film_service";
+
+service FilmService {
+  rpc ListFilmsV1(ListFilmsV1Request) returns (ListFilmsV1Response) {
+    option (google.api.http) = {
+      get: "/v1/film"
+    };
+  }
+
+  rpc DescribeFilmV1(DescribeFilmV1Request) returns (DescribeFilmV1Response) {
+    option (google.api.http) = {
+      get: "/v1/film/{id}"
+    };
+  }
+
+  rpc CreateFilmV1(CreateFilmV1Request) returns (CreateFilmV1Response) {
+    option (google.api.http) = {
+      post: "/v1/film/create",
+      body: "*"
+    };
+  }
+
+  rpc RemoveFilmV1(RemoveFilmV1Request) returns (RemoveFilmV1Response) {
+    option (google.api.http) = {
+      post: "/v1/film/remove/{id}"
+    };
+  }
+}
+
+message Film {
+  uint64 id  = 1;
+  string name = 2;
+  double rating = 3;
+  string shortDescription = 4;
+}
+
+message DescribeFilmV1Request {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message DescribeFilmV1Response {
+  Film value = 1;
+}
+
+message CreateFilmV1Request {
+  string name = 1 [(validate.rules).string = { min_len: 2, max_len: 100 }];
+  double rating = 2 [(validate.rules).double = { gt: 0, lt: 10 }];
+  string shortDescription = 3 [(validate.rules).string = { min_len: 2, max_len: 300 }];
+}
+
+message CreateFilmV1Response {
+  uint64 film_id = 1;
+}
+
+message ListFilmsV1Request {
+}
+
+message ListFilmsV1Response {
+  repeated Film items = 1;
+}
+
+message RemoveFilmV1Request {
+  uint64 id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message RemoveFilmV1Response {
+  bool found = 1;
+}

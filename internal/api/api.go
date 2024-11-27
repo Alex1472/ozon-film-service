@@ -2,67 +2,33 @@ package api
 
 import (
 	"context"
+	"github.com/Alex1472/ozon-film-service/internal/model"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 
-	"github.com/rs/zerolog/log"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
-	"github.com/ozonmp/omp-template-api/internal/repo"
-
-	pb "github.com/ozonmp/omp-template-api/pkg/omp-template-api"
+	pb "github.com/Alex1472/ozon-film-service/pkg/film-service"
 )
 
 var (
-	totalTemplateNotFound = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "omp_template_api_template_not_found_total",
+	totalFilmNotFound = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "film_service_api_template_not_found_total",
 		Help: "Total number of templates that were not found",
 	})
 )
 
-type templateAPI struct {
-	pb.UnimplementedOmpTemplateApiServiceServer
-	repo repo.Repo
+type Service interface {
+	List(ctx context.Context) ([]*model.Film, error)
+	Describe(ctx context.Context, filmID uint64) (*model.Film, error)
+	Create(ctx context.Context, name string, rating float64, shortDescription string) (uint64, error)
+	Remove(ctx context.Context, filmID uint64) error
 }
 
-// NewTemplateAPI returns api of omp-template-api service
-func NewTemplateAPI(r repo.Repo) pb.OmpTemplateApiServiceServer {
-	return &templateAPI{repo: r}
+type filmAPI struct {
+	pb.UnimplementedFilmServiceServer
+	s Service
 }
 
-func (o *templateAPI) DescribeTemplateV1(
-	ctx context.Context,
-	req *pb.DescribeTemplateV1Request,
-) (*pb.DescribeTemplateV1Response, error) {
-
-	if err := req.Validate(); err != nil {
-		log.Error().Err(err).Msg("DescribeTemplateV1 - invalid argument")
-
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-
-	template, err := o.repo.DescribeTemplate(ctx, req.TemplateId)
-	if err != nil {
-		log.Error().Err(err).Msg("DescribeTemplateV1 -- failed")
-
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	if template == nil {
-		log.Debug().Uint64("templateId", req.TemplateId).Msg("template not found")
-		totalTemplateNotFound.Inc()
-
-		return nil, status.Error(codes.NotFound, "template not found")
-	}
-
-	log.Debug().Msg("DescribeTemplateV1 - success")
-
-	return &pb.DescribeTemplateV1Response{
-		Value: &pb.Template{
-			Id:  template.ID,
-			Foo: template.Foo,
-		},
-	}, nil
+func NewFilmAPI(service Service) pb.FilmServiceServer {
+	return &filmAPI{s: service}
 }

@@ -129,7 +129,7 @@ $ python -m venv .venv
 $ . .venv/bin/activate
 $ make deps
 $ make generate
-$ cd pypkg/omp-template-api
+$ cd pypkg/film-service
 $ python setup.py install
 $ cd ../..
 $ docker-compose up -d
