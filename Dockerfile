@@ -1,12 +1,10 @@
 # Builder
-
-ARG GITHUB_PATH=github.com/Alex1472/ozon-film-service
-
-FROM golang:1.16-alpine AS builder
-
-WORKDIR /home/${GITHUB_PATH}
+FROM golang:1.23.3-alpine3.20 AS builder
 
 RUN apk add --update make git protoc protobuf protobuf-dev curl
+ARG GITHUB_PATH=github.com/Alex1472/ozon-film-service
+
+WORKDIR /home/${GITHUB_PATH}
 COPY Makefile Makefile
 RUN make deps-go
 COPY . .
@@ -19,6 +17,7 @@ LABEL org.opencontainers.image.source https://${GITHUB_PATH}
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
+ARG GITHUB_PATH=github.com/Alex1472/ozon-film-service
 COPY --from=builder /home/${GITHUB_PATH}/bin/grpc-server .
 COPY --from=builder /home/${GITHUB_PATH}/config.yml .
 COPY --from=builder /home/${GITHUB_PATH}/migrations/ ./migrations

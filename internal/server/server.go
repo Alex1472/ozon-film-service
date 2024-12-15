@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Alex1472/ozon-film-service/internal/kafka"
 	"github.com/Alex1472/ozon-film-service/internal/service"
 	"net"
 	"net/http"
@@ -13,17 +14,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jmoiron/sqlx"
-	"github.com/rs/zerolog/log"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/keepalive"
-	"google.golang.org/grpc/reflection"
-
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcrecovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/jmoiron/sqlx"
+	"github.com/rs/zerolog/log"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 
 	"github.com/Alex1472/ozon-film-service/internal/api"
 	"github.com/Alex1472/ozon-film-service/internal/config"
@@ -46,7 +45,7 @@ func NewGrpcServer(db *sqlx.DB, batchSize uint) *GrpcServer {
 }
 
 // Start method runs server
-func (s *GrpcServer) Start(cfg *config.Config) error {
+func (s *GrpcServer) Start(cfg *config.Config, db *sqlx.DB) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -108,9 +107,11 @@ func (s *GrpcServer) Start(cfg *config.Config) error {
 		)),
 	)
 
-	//r := repo.NewRepo(s.db, s.batchSize)
-	r := repo.NewRepo()
-	service := service.NewFilmService(r)
+	//filmRepo := repo.NewFilmRepo(s.db, s.batchSize)
+	filmRepo := repo.NewFilmRepo(db)
+	eventRepo := repo.NewEventRepo(db)
+	eventSender, _ := kafka.NewProducer()
+	service := service.NewFilmService(filmRepo, eventRepo, eventSender)
 	pb.RegisterFilmServiceServer(grpcServer, api.NewFilmAPI(service))
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	grpc_prometheus.Register(grpcServer)
@@ -128,9 +129,9 @@ func (s *GrpcServer) Start(cfg *config.Config) error {
 		log.Info().Msg("The service is ready to accept requests")
 	}()
 
-	if cfg.Project.Debug {
-		reflection.Register(grpcServer)
-	}
+	//if cfg.Project.Debug {
+	//	reflection.Register(grpcServer)
+	//}
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
